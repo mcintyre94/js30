@@ -34,9 +34,7 @@
 
 	function draw(e){
 		if(!isDrawing) return;
-
-		console.log(e);
-
+		
 		ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
 		ctx.beginPath();
 		ctx.moveTo(lastX, lastY);
@@ -62,6 +60,26 @@
 
 	}
 
+	function changeBlendMode(e){
+		// Change blend modes on key down
+		let gco = '';
+
+		switch(e.key){
+			case 'a': gco = 'multiply'; break;
+			case 'x' : gco = 'xor'; break;
+			case 'd' : gco = 'color-dodge'; break;
+			case 'c' : gco = 'color-burn'; break;
+			case 's': gco = 'saturation'; break;
+			case 'q': gco = 'luminosity'; break;
+			case 'z' : gco = 'source-over'; break;
+		}
+
+		if(gco !== ''){
+			console.log(`new gco is ${gco}`);
+			ctx.globalCompositeOperation = gco;
+		}
+	}
+
 	canvas.addEventListener('mousedown', (e) => {
 		isDrawing = true;
 		[lastX, lastY] = [e.offsetX, e.offsetY];
@@ -70,6 +88,8 @@
 	
 	canvas.addEventListener('mouseup', () => isDrawing = false);
 	canvas.addEventListener('mouseout', () => isDrawing = false);
+
+	window.addEventListener('keydown', changeBlendMode);
 
 </script>
 
