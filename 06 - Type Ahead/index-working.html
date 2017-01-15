@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="City or State">
+    <ul class="suggestions">
+      <li>Filter for a city</li>
+      <li>or a state</li>
+    </ul>
+  </form>
+<script>
+const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+
+const cities = [];
+
+const userLocation = {
+  'latitude': null,
+  'longitude': null
+}
+
+navigator.geolocation.getCurrentPosition(function(position) {
+  userLocation['latitude'] = position.coords.latitude;
+  userLocation['longitude'] = position.coords.longitude;
+});
+
+console.log(userLocation);
+
+fetch(endpoint)
+  .then(blob => blob.json())
+  .then(data => cities.push(...data));
+
+function getDistance(loc1, loc2){
+  return getDistanceFromLatLonInKm(loc1['latitude'], loc1['longitude'], loc2['latitude'], loc2['longitude']);
+}
+
+function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
+
+function findMatches(wordToMatch, cities){
+  const regex = new RegExp(wordToMatch, 'gi');
+
+  return cities.filter(place => 
+    // Match on city or state
+    place.city.match(regex) || place.state.match(regex)
+  );
+}
+
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+const cityAsLocation = (place) => ({
+  'latitude' : place.latitude,
+  'longitude' : place.longitude
+});
+
+function displayMatches(){
+  const matchArray = findMatches(this.value, cities);
+
+  const regex = new RegExp(this.value, 'gi');
+
+  const sorted = matchArray.sort((c1, c2) => {
+    const d1 = getDistance(userLocation, cityAsLocation(c1));
+    const d2 = getDistance(userLocation, cityAsLocation(c2));
+
+    return d1 < d2 ? -1 : 1;
+  });
+
+  const html = sorted.map(place => {
+
+    const cityName = place.city.replace(regex, `<span class="hl">${this.value}</span>`);
+    const stateName = place.state.replace(regex, `<span class="hl">${this.value}</span>`);
+
+    return `
+      <li>
+        <span class="name">${cityName}, ${stateName}</span>
+        <span class="population">${numberWithCommas(place.population)}</span>
+      </li>
+      `;
+  }).join();  
+
+  suggestions.innerHTML = html;  
+}
+
+const searchInput = document.querySelector('.search');
+const suggestions = document.querySelector('.suggestions');
+
+searchInput.addEventListener('change', displayMatches);
+searchInput.addEventListener('keyup', displayMatches);
+
+</script>
+  </body>
+</html>
