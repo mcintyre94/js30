@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mouse Shadow</title>
+</head>
+<body>
+
+  <div class="hero">
+    <h1 contenteditable>🔥WOAH!</h1>
+  </div>
+
+  <style>
+  html {
+    color:black;
+    font-family: sans-serif;
+  }
+
+  .hero {
+    min-height: 100vh;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    color:black;
+  }
+
+  h1 {
+    text-shadow: 10px 10px 0 rgba(0,0,0,1);
+    font-size: 100px;
+  }
+  </style>
+
+<script>
+  const hero = document.querySelector('.hero');
+  const text = hero.querySelector('h1');
+  const walk = 500;
+
+  function shadow(e){
+    console.log(e);
+
+    const {offsetWidth: width, offsetHeight: height} = hero;
+    let {offsetX: x, offsetY: y} = e;
+
+    if(this !== e.target){
+      x = x + e.target.offsetLeft;
+      y = y + e.target.offsetTop;
+    }
+
+    xWalk = Math.round((x / width * walk) - (walk / 2)); // if walk=100, this gets the range [-50, 50]
+    yWalk = Math.round((y/ height * walk) - (walk / 2));
+
+    const blurs = randomNumbers(4,5);
+
+    text.style.textShadow = `
+      ${xWalk}px ${yWalk}px ${blurs[0]}px rgba(0, 255, 255, 0.7),
+      ${xWalk * -1}px ${yWalk}px ${blurs[1]}px rgba(255, 0, 255, 0.7),
+      ${xWalk}px ${yWalk * -1}px ${blurs[2]}px rgba(255, 255, 0, 0.7),
+      ${xWalk * -1}px ${yWalk * -1}px ${blurs[3]}px rgba(118, 0, 0, 0.7)
+      `;
+  }
+
+  function randomNumbers(amount, max){
+    out = [];
+    for(i=0; i<amount; i++){
+      rand = Math.floor(Math.random() * (max+1));
+      out.push(rand);
+    }
+
+    return out;
+  }
+
+  hero.addEventListener('mousemove', shadow);
+
+</script>
+</body>
+</html>
